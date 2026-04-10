@@ -1,0 +1,54 @@
+.news-page {
+  padding: 2rem;
+  background-color: #f9f9f9;
+}
+
+.news-section {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.news-section h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.news-section p {
+  margin-bottom: 2rem;
+  color: #666;
+}
+
+.loading,
+.error {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.badge-real {
+  background-color: #28a745;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+
+.badge-fake {
+  background-color: #dc3545;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+
+.badge-secondary {
+  background-color: gray;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 8px;
+}
