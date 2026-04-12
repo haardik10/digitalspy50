@@ -177,8 +177,9 @@ def full_clean_pipeline(text):
 def predict_news(text):
     if not isinstance(text, str) or not text.strip():
         return {
-            "prediction": "No input provided",
-            "confidence": 0.0
+            "prediction": "Unknown",
+            "confidence": 0.0,
+            "color": "gray"
         }
 
     text = full_clean_pipeline(text)
@@ -195,11 +196,19 @@ def predict_news(text):
     with torch.inference_mode():
         outputs = model(**inputs)
         probs = torch.nn.functional.softmax(outputs["logits"], dim=1)
+
         confidence, pred_class = torch.max(probs, dim=1)
 
-    prediction = "Real" if pred_class.item() == 1 else "Fake"
+    # 🔥 Map class → prediction
+    if pred_class.item() == 1:
+        prediction = "Real"
+        color = "green"
+    else:
+        prediction = "Fake"
+        color = "red"
 
     return {
         "prediction": prediction,
-        "confidence": float(confidence.item())
+        "confidence": float(confidence.item()),
+        "color": color
     }

@@ -1,35 +1,39 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template
 from flask_cors import CORS
-from backend.distilbert_model import predict_news
 import os
+import re
+
+from backend.news_api import get_trending_news
 from backend.aggregator import get_latest_articles
-from backend.model.utils import load_tokenizer
-from tensorflow.keras.models import load_model
-from backend.model.preprocess import clean_text
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+from backend.distilbert_model import predict_news
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SAVED_DIR = os.path.join(BASE_DIR, 'saved_models')
 
-app = Flask( __name__, template_folder=os.path.join(BASE_DIR, '../templates'), static_folder=os.path.join(BASE_DIR, '../static') )
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, '../templates'),
+    static_folder=os.path.join(BASE_DIR, '../static')
+)
 CORS(app)
 
-model = None
-tokenizer = None
-MAX_LEN = 300
 
-try:
-    model_path = os.path.join(SAVED_DIR, 'lstm_model.h5')
-    tokenizer_path = os.path.join(SAVED_DIR, 'tokenizer.pkl')
+def summarize_text(text, max_sentences=3):
+    if not isinstance(text, str) or not text.strip():
+        return "No summary available."
 
-    if os.path.exists(model_path) and os.path.exists(tokenizer_path):
-        model = load_model(model_path)
-        tokenizer = load_tokenizer(tokenizer_path)
-        print('✅ Loaded model and tokenizer from', SAVED_DIR)
-    else:
-        print('⚠️ Model or tokenizer not found.')
-except Exception as e:
-    print('❌ Error loading model:', e)
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    sentences = [s.strip() for s in sentences if len(s.strip()) > 30]
+
+    if not sentences:
+        short_text = text[:300].strip()
+        return short_text + "..." if len(text) > 300 else short_text
+
+    summary = " ".join(sentences[:max_sentences])
+
+    if len(summary) > 500:
+        summary = summary[:500].rsplit(" ", 1)[0] + "..."
+
+    return summary
 
 
 @app.route('/')
@@ -37,55 +41,77 @@ def home():
     return render_template('index.html')
 
 
+@app.route('/trending')
+def trending():
+    return render_template('trending.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
 @app.route('/api/fetch-and-classify', methods=['GET'])
 def fetch_and_classify():
-    articles = get_latest_articles()
-    results = []
-
-    for a in articles:
-        text = a.get('text', '')
-        cleaned = clean_text(text)
-
-        if model and tokenizer:
-            seq = tokenizer.texts_to_sequences([cleaned])
-            pad = pad_sequences(seq, maxlen=MAX_LEN)
-            pred = float(model.predict(pad, verbose=0)[0][0])
-            label = 'Real' if pred > 0.5 else 'Fake'
-        else:
-            pred = None
-            label = 'Model not trained'
-
-        results.append({
-            'title': a.get('title'),
-            'url': a.get('url'),
-            'source': a.get('source'),
-            'prediction': label,
-            'confidence': pred
-        })
-
-    return jsonify(results)
-
-
-@app.route('/predict_text', methods=['POST'])
-def predict_text():
     try:
-        data = request.get_json()
-        text = data.get('text', '').strip()
+        articles = get_latest_articles()
+        results = []
 
-        if not text:
-            return jsonify({'result': 'No input provided', 'confidence': 0}), 400
+        for article in articles:
+            text = article.get('text', '').strip()
 
-        result = predict_news(text)
+            if not text:
+                continue
 
-        return jsonify({
-            'result': result['prediction'],
-            'confidence': result['confidence']
-        })
+            pred = predict_news(text)
+            summary = summarize_text(text)
+
+            results.append({
+                'title': article.get('title', 'Untitled'),
+                'url': article.get('url', ''),
+                'source': article.get('source', 'Unknown Source'),
+                'image': article.get('image', '/static/no-image.png'),
+                'prediction': pred.get('prediction', 'Unknown'),
+                'confidence': pred.get('confidence', 0),
+                'summary': summary
+            })
+
+        return jsonify(results)
+
     except Exception as e:
         return jsonify({
-            'result': 'Error',
-            'confidence': 0,
-            'error': str(e)
+            "error": str(e),
+            "results": []
+        }), 500
+
+
+@app.route('/api/trending-news', methods=['GET'])
+def trending_news():
+    try:
+        articles = get_trending_news()
+        results = []
+
+        for article in articles:
+            text = (article.get("title", "") + " " + article.get("text", "")).strip()
+
+            pred = predict_news(text) if text else {
+                
+            }
+
+            results.append({
+                "title": article.get("title", "Untitled"),
+                "url": article.get("url", ""),
+                "source": article.get("source", "Unknown"),
+                "image": article.get("image", "/static/no-image.png"),
+                
+                "summary": summarize_text(article.get("text", ""))
+            })
+
+        return jsonify(results)
+
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "results": []
         }), 500
 
 

@@ -5,47 +5,44 @@ export default function NewsCard({
   source,
   url,
   image_url,
-  prediction,
   confidence,
+  summary
 }) {
-  const badgeColor =
-    prediction === "Real"
-      ? "badge-real"
-      : prediction === "Fake"
-      ? "badge-fake"
-      : "badge-secondary";
+  const safeConfidence = typeof confidence === "number" ? confidence : 0;
+  const isReal = safeConfidence >= 0.5;
 
   return (
     <div className="news-card">
-      {/* ✅ Image Section */}
       <img
-        src={
-          image_url && image_url.startsWith("http")
-            ? image_url
-            : "https://via.placeholder.com/400x250?text=No+Image"
-        }
+        src={image_url || "https://via.placeholder.com/400x250?text=No+Image"}
         alt={title}
         className="news-image"
         onError={(e) => {
-          e.target.onerror = null;
           e.target.src = "https://via.placeholder.com/400x250?text=No+Image";
         }}
       />
 
-      {/* ✅ Content Section */}
-      <div className="news-content">
-        <h4 className="news-title">{title}</h4>
-        <p className="news-source">{source}</p>
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          Read source
-        </a>
-        <p className="prediction">
-          <span className={`badge ${badgeColor}`}>{prediction}</span>{" "}
-          {confidence !== null &&
-            confidence !== undefined &&
-            `Confidence: ${confidence.toFixed(3)}`}
+      <h5>{title || "Untitled"}</h5>
+
+      <p className="news-source">{source || "Unknown Source"}</p>
+
+      <a
+        href={url || "#"}
+        target="_blank"
+        rel="noreferrer"
+        className="news-link"
+      >
+        Read source
+      </a>
+
+      <div className="news-status">
+        <span className={isReal ? "dot-real" : "dot-fake"}></span>
+        <p className="news-confidence">
+          Confidence: {(safeConfidence * 100).toFixed(1)}%
         </p>
       </div>
+
+      {summary && <p className="news-summary">{summary}</p>}
     </div>
   );
 }
