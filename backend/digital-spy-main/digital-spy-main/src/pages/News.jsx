@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import NewsCard from "../components/NewsCard";
+import axios from "axios";
 import "./News.css";
 
 export default function News() {
@@ -10,19 +11,19 @@ export default function News() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/fetch-and-classify");
+        const res = await fetch("http://localhost:5000/api/fetch-and-classify"); // ✅ Flask endpoint
         const data = await res.json();
 
         const formatted = data.map((a) => ({
-          title: a.title || "Untitled",
-          source: a.source || "Unknown Source",
-          url: a.url || "#",
+          title: a.title,
+          source: a.source,
+          url: a.url,
           image_url:
-            a.image ||
             a.image_url ||
+            a.image ||
             "https://via.placeholder.com/400x250?text=No+Image",
-          confidence: typeof a.confidence === "number" ? a.confidence : 0,
-          summary: a.summary || "",
+          prediction: a.prediction,
+          confidence: a.confidence,
         }));
 
         setArticles(formatted);

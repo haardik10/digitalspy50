@@ -1,0 +1,22 @@
+.trending {
+    padding: 60px 50px;
+    background: white;
+  }
+  
+  .trending h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  
+  .trending p {
+    color: #666;
+    margin-bottom: 30px;
+  }
+  
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  

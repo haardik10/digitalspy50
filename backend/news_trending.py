@@ -6,7 +6,14 @@ RSS_FEEDS = [
     'https://www.reutersagency.com/feed/?best-topics=news',
     'https://apnews.com/rss',
     'https://rss.dw.com/xml/rss-en-all',
-    'https://www.france24.com/en/rss',
+    
+    "https://feeds.bbci.co.uk/news/rss.xml",
+    
+    
+    
+    
+    "https://www.theguardian.com/world/rss",
+    
 ]
 
 MAX_PER_FEED = 5

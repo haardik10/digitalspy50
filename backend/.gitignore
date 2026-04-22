@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Virtual environments
+venv/
+.venv/
+
+# VS Code settings
+.vscode/
+
+# Flask specific
+instance/
+*.db
+*.sqlite3
+
+# Environment & secrets
+.env
+*.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Node or JS-related (if using React/JS frontend)
+node_modules/
+build/
+dist/
+
+# Cache & temp files
+*.cache
+*.bak
+*.swp
+*.tmp
+
+# Dataset (IMPORTANT)
+data/*.csv
